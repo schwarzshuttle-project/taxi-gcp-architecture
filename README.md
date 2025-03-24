@@ -14,7 +14,7 @@ This repository contains a Python script (`deploy.py`) that automates the deploy
 ## Prerequisites
 - **GCP Account**: A GCP project with billing enabled.
 - **Python**: Version 3.7 or higher installed.
-- **Google Cloud SDK**: Installed and authenticated using `gcloud auth login`.
+- **Google Cloud SDK**: Downloaded from: https://cloud.google.com/sdk/docs/install, Installed, and authenticated using `gcloud auth login`.
 - **Service Account Key**: A JSON key file for a service account with the "Editor" role (or equivalent permissions to create resources).
   
 ## Setup and Usage
