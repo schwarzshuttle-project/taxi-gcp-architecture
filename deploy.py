@@ -45,7 +45,7 @@ resource_client = ProjectsClient(credentials=credentials)
 
 def create_pubsub_resources():
     """Creates Pub/Sub topics and subscriptions for taxi data."""
-    for topic_id in ["taxi-trips", "car-messages"]:
+    for topic_id in ["taxi-trips", "taxi-response"]:
         topic_path = pubsub_publisher.topic_path(PROJECT_ID, topic_id)
         try:
             pubsub_publisher.create_topic(request={"name": topic_path})
