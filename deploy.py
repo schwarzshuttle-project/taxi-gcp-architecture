@@ -37,7 +37,7 @@ except Exception as e:
 
 # Initialize GCP service clients with explicit credentials
 pubsub_publisher = pubsub_v1.PublisherClient(credentials=credentials)
-pubsub_subscriber = pubsub_v1.SubscriberClient(credentials=credentials)  # Separate client for subscriptions
+pubsub_subscriber = pubsub_v1.SubscriberClient(credentials=credentials)
 bq_client = bigquery.Client(project=PROJECT_ID, credentials=credentials)
 kms_client = kms_v1.KeyManagementServiceClient(credentials=credentials)
 resource_client = ProjectsClient(credentials=credentials)
