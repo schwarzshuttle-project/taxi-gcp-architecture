@@ -16,16 +16,18 @@ This repository contains a Python script (`deploy.py`) that automates the deploy
 - **Python**: Version 3.7 or higher installed.
 - **Google Cloud SDK**: Installed and authenticated using `gcloud auth login`.
 - **Service Account Key**: A JSON key file for a service account with the "Editor" role (or equivalent permissions to create resources).
-- **Dependencies**: Install the required Python libraries:
-  ```bash
-  pip install google-cloud-pubsub google-cloud-bigquery google-cloud-iam google-cloud-resource-manager google-cloud-kms google-auth
-  ```
+  
 ## Setup and Usage
 
 ### Clone the Repository
 ```bash
 git clone https://github.com/SchwarzShuttle/taxi-gcp-architecture.git
 cd taxi-gcp-architecture
+```
+
+### Install Dependencies
+```bash
+pip install -r requirements.txt
 ```
 
 ### Configure the Script
