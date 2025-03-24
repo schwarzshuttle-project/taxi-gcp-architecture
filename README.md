@@ -38,11 +38,7 @@ pip install -r requirements.txt
 ### Enable Required APIs
 Enable the following APIs via GCP Console or CLI:
 ```bash
-gcloud services enable pubsub.googleapis.com \
-    bigquery.googleapis.com \
-    cloudkms.googleapis.com \
-    cloudresourcemanager.googleapis.com \
-    dataflow.googleapis.com --project=<PROJECT_ID>
+gcloud services enable pubsub.googleapis.com bigquery.googleapis.com cloudkms.googleapis.com cloudresourcemanager.googleapis.com dataflow.googleapis.com --project=taxipoc-2025
 ```
 
 ### Set Up the Dataflow Service Account
