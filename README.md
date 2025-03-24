@@ -48,21 +48,13 @@ gcloud iam service-accounts create dataflow --project=<PROJECT_ID>
 ```
 Assign required roles:
 ```bash
-gcloud projects add-iam-policy-binding <PROJECT_ID> \
-    --member="serviceAccount:dataflow@<PROJECT_ID>.iam.gserviceaccount.com" \
-    --role="roles/dataflow.worker"
+gcloud projects add-iam-policy-binding <PROJECT_ID> --member="serviceAccount:dataflow@<PROJECT_ID>.iam.gserviceaccount.com" --role="roles/dataflow.worker"
 
-gcloud projects add-iam-policy-binding <PROJECT_ID> \
-    --member="serviceAccount:dataflow@<PROJECT_ID>.iam.gserviceaccount.com" \
-    --role="roles/pubsub.subscriber"
+gcloud projects add-iam-policy-binding <PROJECT_ID> --member="serviceAccount:dataflow@<PROJECT_ID>.iam.gserviceaccount.com" --role="roles/pubsub.subscriber"
 
-gcloud projects add-iam-policy-binding <PROJECT_ID> \
-    --member="serviceAccount:dataflow@<PROJECT_ID>.iam.gserviceaccount.com" \
-    --role="roles/pubsub.publisher"
+gcloud projects add-iam-policy-binding <PROJECT_ID> --member="serviceAccount:dataflow@<PROJECT_ID>.iam.gserviceaccount.com" --role="roles/pubsub.publisher"
 
-gcloud projects add-iam-policy-binding <PROJECT_ID> \
-    --member="serviceAccount:dataflow@<PROJECT_ID>.iam.gserviceaccount.com" \
-    --role="roles/bigquery.dataEditor"
+gcloud projects add-iam-policy-binding <PROJECT_ID> --member="serviceAccount:dataflow@<PROJECT_ID>.iam.gserviceaccount.com" --role="roles/bigquery.dataEditor"
 ```
 
 ### Run the Deployment Script
@@ -74,10 +66,7 @@ The script logs progress in the console (e.g., `INFO - Created topic: taxi-trips
 ### Post-Run KMS Permissions (if needed)
 If BigQuery dataset creation fails due to KMS permissions, grant the **Cloud KMS CryptoKey Encrypter/Decrypter** role:
 ```bash
-gcloud kms keys add-iam-policy-binding taxi-key \
-    --keyring=taxi-keyring --location=global --project=<PROJECT_ID> \
-    --member=serviceAccount:bq-<PROJECT_NUMBER>@bigquery-encryption.iam.gserviceaccount.com \
-    --role=roles/cloudkms.cryptoKeyEncrypterDecrypter
+gcloud kms keys add-iam-policy-binding taxi-key --keyring=taxi-keyring --location=global --project=<PROJECT_ID> --member=serviceAccount:bq-<PROJECT_NUMBER>@bigquery-encryption.iam.gserviceaccount.com --role=roles/cloudkms.cryptoKeyEncrypterDecrypter
 ```
 
 ## Deployed Resources
@@ -121,9 +110,7 @@ gcloud kms keys add-iam-policy-binding taxi-key \
 - **Scope:** Architecture includes Pub/Sub, Dataflow, BigQuery, IAM, and KMS
 
 ## Architecture Diagrams
-- **High-Level Diagram:** `architecture-high-level.drawio`
-- **Low-Level Diagram:** `architecture-low-level.drawio`
-- **Security Diagram:** `architecture-security.drawio`
+- GCP Architecture.drawio
 
 ## Files
 - `deploy.py`: Deployment script
@@ -152,8 +139,6 @@ Check the console output for messages prefixed with `ERROR` or `WARNING`.
 
 ## Notes
 - This script is for initial deployment; production setup may require further configurations.
-- Contact **[Your Fiverr Username]** for support before the delivery deadline.
-- Update your GitHub password post-delivery for security.
 
 ---
 
