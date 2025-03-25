@@ -74,6 +74,7 @@ REQUIRED_APIS = [
 
 
 def enable_required_apis():
+    """Enables required APIs in GCP needed to create resources on"""
     serviceusage_client = service_usage_v1.ServiceUsageClient(credentials=credentials)
     for api in REQUIRED_APIS:
         service_name = f"projects/{PROJECT_ID}/services/{api}"
