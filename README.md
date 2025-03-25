@@ -96,6 +96,12 @@ Run the deployment script to set up the infrastructure:
 python deploy.py
 ```
 
+### Post-Run Checks KMS Permissions (if needed)
+ If BigQuery dataset creation fails due to KMS permissions, grant the **Cloud KMS CryptoKey Encrypter/Decrypter** role. You can find your project number in the logs!:
+ ```bash
+ gcloud kms keys add-iam-policy-binding schwarzshuttle-key --keyring=schwarzshuttle-keyring --location=global --project=<PROJECT_ID> --member=serviceAccount:bq-<PROJECT_NUMBER>@bigquery-encryption.iam.gserviceaccount.com --role=roles/cloudkms.cryptoKeyEncrypterDecrypter
+```
+
 The script will:
 - Create Pub/Sub topics and subscriptions for trip and telemetry data.
 - Set up a BigQuery dataset with CMEK for data storage.
