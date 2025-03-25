@@ -32,15 +32,39 @@ The deployment uses the following GCP services:
 
 ## Prerequisites
 - **Google Cloud Project:** A GCP project (e.g., "taxipoc-2025") with billing enabled.
-- **Service Account Key:** A JSON key file for a service account with necessary permissions (e.g., roles/bigquery.admin, roles/cloudfunctions.admin, roles/appengine.admin, roles/aiplatform.admin, roles/logging.admin).
+- **Google Cloud SDK:** Download and install the [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) to use `gcloud` commands.
+- **Service Account Setup:**
+  1. **Create the Service Account:**
+     ```bash
+     gcloud iam service-accounts create schwarzshuttle-deployer --display-name="SchwarzShuttle Deployer" --description="Service account for deploying SchwarzShuttle infrastructure"  --project=taxipoc-2025
+     ```
+     This creates a service account with the ID `schwarzshuttle-deployer@taxipoc-2025.iam.gserviceaccount.com`.
+  2. **Grant the Owner Role:**
+     ```bash
+     gcloud projects add-iam-policy-binding taxipoc-2025 --member="serviceAccount:schwarzshuttle-deployer@taxipoc-2025.iam.gserviceaccount.com" --role="roles/owner"
+     ```
+     This grants the service account full access to the project, including the ability to enable APIs and manage resources.
+  3. **Create and Download the JSON Key:**
+     ```bash
+     gcloud iam service-accounts keys create taxipoc-2025-83c7b01c8c2e.json --iam-account=schwarzshuttle-deployer@taxipoc-2025.iam.gserviceaccount.com --project=taxipoc-2025
+     ```
+     This creates the JSON key file `taxipoc-2025-83c7b01c8c2e.json` in your current directory. Move it to a secure location accessible by your script (e.g., `E:\taxi-gcp-architecture\taxipoc-2025-83c7b01c8c2e.json`).
+  4. **Update Your Script:**
+     In your `deploy.py` script, ensure the `SERVICE_ACCOUNT_KEY_PATH` variable points to the correct location of the JSON key file:
+     ```python
+     SERVICE_ACCOUNT_KEY_PATH = "E:/taxi-gcp-architecture/taxipoc-2025-83c7b01c8c2e.json"
+     ```
+  5. **Secure the JSON Key File:**
+     Store the JSON key file securely, as it provides full access to your project. Avoid committing it to version control (e.g., add it to `.gitignore`).
+     Set file permissions to restrict access (e.g., on Unix: `chmod 600 taxipoc-2025-83c7b01c8c2e.json`).
 - **Python 3.10:** Ensure Python 3.10 is installed, as the script is compatible with this version.
 - **Dependencies:** Install required Python libraries listed in `requirements.txt`.
 
 ## Setup Instructions
 ### Clone the Repository:
 ```bash
-git clone <repository-url>
-cd schwarzshuttle
+git clone [<repository-url>](https://github.com/SchwarzShuttle/taxi-gcp-architecture.git)
+cd taxi-gcp-architecture
 ```
 
 ### Set Up a Virtual Environment:
@@ -61,24 +85,14 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-#### `requirements.txt` Includes:
-```text
-google-cloud-pubsub==2.21.1
-google-cloud-bigquery==3.20.1
-google-cloud-iam==2.15.0
-google-cloud-resource-manager==1.12.3
-google-auth==2.29.0
-google-cloud-kms==2.22.0
-google-cloud-functions==1.16.3
-google-cloud-appengine-admin==1.8.4
-google-cloud-aiplatform==1.60.0
-google-cloud-securitycenter==1.28.0
-google-cloud-logging==3.10.0
-google-api-python-client==2.149.0
-```
-
 ### Update `deploy.py`:
-Ensure `deploy.py` reflects your project ID, dataset ID, and other configurations. The script will skip VPC Service Controls setup if `ORGANIZATION_ID` is not set.
+Open deploy.py and Set the following variables:
+```bash
+PROJECT_ID = "taxipoc-2025"  # Update to your project ID
+LOCATION = "global" # Update to your location
+SERVICE_ACCOUNT_KEY_PATH = "taxipoc-2025-83c7b01c8c2e.json"  # Update to your service account key path
+ORGANIZATION_ID = ""  # Set to empty string if no organization; VPC Service Controls requires an organization
+```
 
 ## Usage
 Run the deployment script to set up the infrastructure:
@@ -87,7 +101,6 @@ python deploy.py
 ```
 
 The script will:
-- Enable all required services in GCP
 - Create Pub/Sub topics and subscriptions for trip and telemetry data.
 - Set up a BigQuery dataset with CMEK for data storage.
 - Deploy Cloud Functions for trip processing, receipt generation, and fraud alerts.
@@ -95,20 +108,4 @@ The script will:
 - Initialize Vertex AI for ML model training and inference.
 - Attempt to set up VPC Service Controls (skipped if no organization).
 - Configure security monitoring with log sinks to BigQuery (Security Command Center source creation skipped due to no organization).
-
-## Limitations
-- **VPC Service Controls:** Requires an organization, which is not available for this project. Alternative security measures (IAM policies, firewall rules, etc.) are used instead.
-- **Security Command Center:** Source creation is skipped as it requires an organization. Project-level monitoring via audit logs in BigQuery is used instead.
-- **IoT Core:** Replaced with ClearBlade due to Google Cloud IoT Core retirement on August 16, 2023. Ensure ClearBlade or another IoT solution is configured separately.
-
-## Troubleshooting
-- **Import Errors:** Ensure all dependencies are installed in the correct virtual environment (`pip install -r requirements.txt`).
-- **Permission Errors:** Verify the service account has necessary roles (`roles/bigquery.admin`, `roles/cloudfunctions.admin`, etc.) in "IAM & Admin" > "IAM".
-- **API Enablement:** Ensure all required APIs are enabled in `REQUIRED_APIS` within the script, such as `bigquery.googleapis.com`, `aiplatform.googleapis.com`, etc.
-- **Logs:** Check logs for detailed error messages, which are logged with `logging` to help diagnose issues.
-
-## Future Improvements
-- **Organization Setup:** Consider creating an organization in GCP to enable VPC Service Controls and Security Command Center source creation for enhanced security.
-- **IoT Integration:** Fully integrate ClearBlade or another IoT solution for device management, replacing the retired IoT Core functionality.
-- **Monitoring Enhancements:** Explore additional monitoring tools like Cloud Monitoring for more comprehensive observability.
 
