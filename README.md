@@ -34,21 +34,22 @@ The deployment uses the following GCP services:
 - **Google Cloud Project:** A GCP project (e.g., "taxipoc-2025") with billing enabled.
 - **Google Cloud SDK:** Download and install the [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) to use `gcloud` commands.
 - **Service Account Setup:**
+  *Note* Make sure to replace ALL occurences of <taxipoc-2025> strings in the below commands with your GCP project ID!!!
   1. **Create the Service Account:**
      ```bash
-     gcloud iam service-accounts create schwarzshuttle-deployer --display-name="SchwarzShuttle Deployer" --description="Service account for deploying SchwarzShuttle infrastructure"  --project=taxipoc-2025
+     gcloud iam service-accounts create schwarzshuttle-deployer --display-name="SchwarzShuttle Deployer" --description="Service account for deploying SchwarzShuttle infrastructure"  --project=<taxipoc-2025>
      ```
-     This creates a service account with the ID `schwarzshuttle-deployer@taxipoc-2025.iam.gserviceaccount.com`.
+     This creates a service account with the ID `schwarzshuttle-deployer@<taxipoc-2025>.iam.gserviceaccount.com`.
   2. **Grant the Owner Role:**
      ```bash
-     gcloud projects add-iam-policy-binding taxipoc-2025 --member="serviceAccount:schwarzshuttle-deployer@taxipoc-2025.iam.gserviceaccount.com" --role="roles/owner"
+     gcloud projects add-iam-policy-binding <taxipoc-2025> --member="serviceAccount:schwarzshuttle-deployer@<taxipoc-2025>.iam.gserviceaccount.com" --role="roles/owner"
      ```
      This grants the service account full access to the project, including the ability to enable APIs and manage resources.
   3. **Create and Download the JSON Key:**
      ```bash
-     gcloud iam service-accounts keys create taxipoc-2025-83c7b01c8c2e.json --iam-account=schwarzshuttle-deployer@taxipoc-2025.iam.gserviceaccount.com --project=taxipoc-2025
+     gcloud iam service-accounts keys create <taxipoc-2025>-83c7b01c8c2e.json --iam-account=schwarzshuttle-deployer@<taxipoc-2025>.iam.gserviceaccount.com --project=<taxipoc-2025>
      ```
-     This creates the JSON key file `taxipoc-2025-83c7b01c8c2e.json` in your current directory. Move it to a secure location accessible by your script (e.g., `E:\taxi-gcp-architecture\taxipoc-2025-83c7b01c8c2e.json`).
+     This creates the JSON key file `<taxipoc-2025>-83c7b01c8c2e.json` in your current directory. Move it to a secure location accessible by your script (e.g., `E:\taxi-gcp-architecture\<taxipoc-2025>-83c7b01c8c2e.json`).
   4. **Secure the JSON Key File:**
      Store the JSON key file securely, as it provides full access to your project. Avoid committing it to version control (e.g., add it to `.gitignore`).
      Set file permissions to restrict access (e.g., on Unix: `chmod 600 taxipoc-2025-83c7b01c8c2e.json`).
@@ -83,9 +84,9 @@ pip install -r requirements.txt
 ### Update `deploy.py`:
 Open deploy.py and Set the following variables:
 ```bash
-PROJECT_ID = "taxipoc-2025"  # Update to your project ID
+PROJECT_ID = "<taxipoc-2025>"  # Update to your project ID
 LOCATION = "global" # Update to your location
-SERVICE_ACCOUNT_KEY_PATH = "taxipoc-2025-83c7b01c8c2e.json"  # Update to your service account key path
+SERVICE_ACCOUNT_KEY_PATH = "<taxipoc-2025>-83c7b01c8c2e.json"  # Update to your service account key path
 ORGANIZATION_ID = ""  # Set to empty string if no organization; VPC Service Controls requires an organization
 ```
 
