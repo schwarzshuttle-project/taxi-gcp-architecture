@@ -34,7 +34,7 @@ The deployment uses the following GCP services:
 - **Google Cloud Project:** A GCP project (e.g., "taxipoc-2025") with billing enabled.
 - **Google Cloud SDK:** Download and install the [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) to use `gcloud` commands.
 - **Service Account Setup:**
-  *Note* Make sure to replace ALL occurences of <taxipoc-2025> strings in the below commands with your GCP project ID!!!
+  *Note* Make sure to replace ALL occurences of `<taxipoc-2025>` strings in the below commands with your GCP project ID!!!
   1. **Create the Service Account:**
      ```bash
      gcloud iam service-accounts create schwarzshuttle-deployer --display-name="SchwarzShuttle Deployer" --description="Service account for deploying SchwarzShuttle infrastructure"  --project=<taxipoc-2025>
