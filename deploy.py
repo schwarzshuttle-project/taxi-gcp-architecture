@@ -234,6 +234,22 @@ def setup_security_monitoring():
         sink.destination = f"bigquery.googleapis.com/projects/{PROJECT_ID}/datasets/{DATASET_ID}"
         sink.create()
         logger.info("Created Log Sink to BigQuery")
+        # Grant write permissions to the sink's writerIdentity
+        writer_identity = sink.writer_identity
+        resource_service = discovery.build('bigquery', 'v2', credentials=credentials)
+        policy = resource_service.datasets().getIamPolicy(
+            resource=f"projects/{PROJECT_ID}/datasets/{DATASET_ID}"
+        ).execute()
+        policy['bindings'] = policy.get('bindings', [])
+        policy['bindings'].append({
+            "role": "roles/bigquery.dataEditor",
+            "members": [writer_identity]
+        })
+        resource_service.datasets().setIamPolicy(
+            resource=f"projects/{PROJECT_ID}/datasets/{DATASET_ID}",
+            body={"policy": policy}
+        ).execute()
+        logger.info(f"Granted write permissions to {writer_identity} on dataset {DATASET_ID}")
     except Exception as e:
         logger.warning(f"Log Sink exists or error: {e}")
 
@@ -273,3 +289,4 @@ if __name__ == "__main__":
     setup_security_monitoring()
     set_iam_policy()
     logger.info("Deployment completed.")
+    
