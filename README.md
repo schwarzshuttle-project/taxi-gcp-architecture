@@ -87,6 +87,7 @@ python deploy.py
 ```
 
 The script will:
+- Enable all required services in GCP
 - Create Pub/Sub topics and subscriptions for trip and telemetry data.
 - Set up a BigQuery dataset with CMEK for data storage.
 - Deploy Cloud Functions for trip processing, receipt generation, and fraud alerts.
