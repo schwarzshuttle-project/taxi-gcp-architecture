@@ -4,3 +4,11 @@ google-cloud-iam==2.15.0
 google-cloud-resource-manager==1.12.3
 google-auth==2.29.0
 google-cloud-kms==2.22.0
+google-cloud-iot==2.9.1
+google-cloud-functions==1.16.3
+google-cloud-appengine-admin==1.8.1
+google-cloud-aiplatform==1.60.0
+google-cloud-securitycenter==1.28.0
+google-cloud-logging==3.10.0
+google-cloud-access-context-manager==0.1.16
+google-cloud-service-usage==1.11.1
