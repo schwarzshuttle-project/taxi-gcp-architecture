@@ -26,12 +26,12 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # Configuration variables
-PROJECT_ID = "taxipoc-2025"  # Update to your project ID
+PROJECT_ID = "taxi-deployment-test"  # Update to your project ID
 LOCATION = "us-west1"  # Update to your region
 KEYRING_NAME = "schwarzshuttle-keyring"
 KEY_NAME = "schwarzshuttle-key"
 DATASET_ID = "schwarzshuttle_dataset"
-SERVICE_ACCOUNT_KEY_PATH = "taxipoc-2025-83c7b01c8c2e.json"  # Update to your service account key path
+SERVICE_ACCOUNT_KEY_PATH = "taxi-deployment-test-83c7b01c8c2e.json"  # Update to your service account key path
 ORGANIZATION_ID = ""  # Set to empty string if no organization; VPC Service Controls requires an organization
 VPC_PERIMETER_NAME = "schwarzshuttle_perimeter"
 
@@ -70,6 +70,7 @@ REQUIRED_APIS = [
     "accesscontextmanager.googleapis.com",
     "storage.googleapis.com",
     "cloudbuild.googleapis.com",
+    "cloudresourcemanager.googleapis.com"
 ]
 
 
@@ -112,14 +113,15 @@ def create_pubsub_resources():
 
 def create_kms_key():
     """Creates a KMS keyring and key for encryption."""
-    keyring_path = kms_client.key_ring_path(PROJECT_ID, LOCATION, KEYRING_NAME)
+    location = "global"
+    keyring_path = kms_client.key_ring_path(PROJECT_ID, location, KEYRING_NAME)
     try:
         kms_client.create_key_ring(
-            request={"parent": f"projects/{PROJECT_ID}/locations/{LOCATION}", "key_ring_id": KEYRING_NAME})
+            request={"parent": f"projects/{PROJECT_ID}/locations/{location}", "key_ring_id": KEYRING_NAME})
         logger.info(f"Created keyring: {KEYRING_NAME}")
     except Exception as e:
         logger.warning(f"Keyring exists or error: {e}")
-    key_path = kms_client.crypto_key_path(PROJECT_ID, LOCATION, KEYRING_NAME, KEY_NAME)
+    key_path = kms_client.crypto_key_path(PROJECT_ID, location, KEYRING_NAME, KEY_NAME)
     try:
         kms_client.create_crypto_key(request={
             "parent": keyring_path,
@@ -132,10 +134,10 @@ def create_kms_key():
     return key_path
 
 
-def create_bigquery_dataset(key_path):
+def create_bigquery_dataset(key_path_name):
     """Creates a BigQuery dataset with CMEK."""
     dataset = bigquery.Dataset(f"{PROJECT_ID}.{DATASET_ID}")
-    dataset.default_encryption_configuration = bigquery.EncryptionConfiguration(kms_key_name=key_path)
+    dataset.default_encryption_configuration = bigquery.EncryptionConfiguration(kms_key_name=key_path_name)
     try:
         bq_client.create_dataset(dataset)
         logger.info(f"Created dataset: {DATASET_ID} with CMEK")
@@ -256,21 +258,58 @@ def setup_security_monitoring():
 
 def set_iam_policy():
     """Grants necessary IAM permissions for services."""
-    policy = resource_client.get_iam_policy(resource=f"projects/{PROJECT_ID}")
+    # Use googleapiclient for IAM policy management
+    resource_service = discovery.build('cloudresourcemanager', 'v1', credentials=credentials)
+    iam_service = discovery.build('iam', 'v1', credentials=credentials)
+
+    # Create the custom Dataflow service account if it doesn't exist
+    dataflow_service_account = f"dataflow@{PROJECT_ID}.iam.gserviceaccount.com"
+    try:
+        iam_service.projects().serviceAccounts().get(
+            name=f"projects/{PROJECT_ID}/serviceAccounts/{dataflow_service_account}"
+        ).execute()
+        logger.info(f"Dataflow service account already exists: {dataflow_service_account}")
+    except Exception as e:
+        if "404" in str(e):
+            try:
+                iam_service.projects().serviceAccounts().create(
+                    name=f"projects/{PROJECT_ID}",
+                    body={
+                        "accountId": "dataflow",
+                        "serviceAccount": {
+                            "displayName": "Dataflow Service Account",
+                            "description": "Service account for Dataflow to access BigQuery"
+                        }
+                    }
+                ).execute()
+                logger.info(f"Created Dataflow service account: {dataflow_service_account}")
+            except Exception as e:
+                logger.error(f"Failed to create Dataflow service account: {e}")
+                return
+        else:
+            logger.error(f"Error checking Dataflow service account: {e}")
+            return
+
+    policy = resource_service.projects().getIamPolicy(resource=PROJECT_ID, body={}).execute()
     bindings = [
-        policy_pb2.Binding(role="roles/bigquery.dataEditor",
-                           members=[f"serviceAccount:dataflow@{PROJECT_ID}.iam.gserviceaccount.com"]),
-        policy_pb2.Binding(role="roles/cloudfunctions.invoker",
-                           members=[f"serviceAccount:{PROJECT_ID}@appspot.gserviceaccount.com"]),
-        policy_pb2.Binding(role="roles/aiplatform.user",
-                           members=[f"serviceAccount:{PROJECT_ID}@appspot.gserviceaccount.com"])
+        {
+            "role": "roles/bigquery.dataEditor",
+            "members": [f"serviceAccount:{dataflow_service_account}"]
+        },
+        {
+            "role": "roles/cloudfunctions.invoker",
+            "members": [f"serviceAccount:{PROJECT_ID}@appspot.gserviceaccount.com"]
+        },
+        {
+            "role": "roles/aiplatform.user",
+            "members": [f"serviceAccount:{PROJECT_ID}@appspot.gserviceaccount.com"]
+        }
     ]
     for new_binding in bindings:
-        if not any(b.role == new_binding.role and set(b.members) == set(b.members) for b in policy.bindings):
-            policy.bindings.append(new_binding)
+        if not any(b['role'] == new_binding['role'] and set(b['members']) == set(new_binding['members']) for b in policy.get('bindings', [])):
+            policy.setdefault('bindings', []).append(new_binding)
     try:
-        request = iam_policy_pb2.SetIamPolicyRequest(resource=f"projects/{PROJECT_ID}", policy=policy)
-        resource_client.set_iam_policy(request=request)
+        resource_service.projects().setIamPolicy(resource=PROJECT_ID, body={"policy": policy}).execute()
         logger.info("Set IAM policy for Dataflow, Cloud Functions, and Vertex AI")
     except Exception as e:
         logger.error(f"IAM policy error: {e}")
@@ -289,4 +328,3 @@ if __name__ == "__main__":
     setup_security_monitoring()
     set_iam_policy()
     logger.info("Deployment completed.")
-    
