@@ -49,12 +49,7 @@ The deployment uses the following GCP services:
      gcloud iam service-accounts keys create taxipoc-2025-83c7b01c8c2e.json --iam-account=schwarzshuttle-deployer@taxipoc-2025.iam.gserviceaccount.com --project=taxipoc-2025
      ```
      This creates the JSON key file `taxipoc-2025-83c7b01c8c2e.json` in your current directory. Move it to a secure location accessible by your script (e.g., `E:\taxi-gcp-architecture\taxipoc-2025-83c7b01c8c2e.json`).
-  4. **Update Your Script:**
-     In your `deploy.py` script, ensure the `SERVICE_ACCOUNT_KEY_PATH` variable points to the correct location of the JSON key file:
-     ```python
-     SERVICE_ACCOUNT_KEY_PATH = "E:/taxi-gcp-architecture/taxipoc-2025-83c7b01c8c2e.json"
-     ```
-  5. **Secure the JSON Key File:**
+  4. **Secure the JSON Key File:**
      Store the JSON key file securely, as it provides full access to your project. Avoid committing it to version control (e.g., add it to `.gitignore`).
      Set file permissions to restrict access (e.g., on Unix: `chmod 600 taxipoc-2025-83c7b01c8c2e.json`).
 - **Python 3.10:** Ensure Python 3.10 is installed, as the script is compatible with this version.
