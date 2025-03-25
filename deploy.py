@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 # Configuration variables
 PROJECT_ID = "taxipoc-2025"  # Update to your project ID
-LOCATION = "global"
+LOCATION = "global" # Update to your region
 KEYRING_NAME = "schwarzshuttle-keyring"
 KEY_NAME = "schwarzshuttle-key"
 DATASET_ID = "schwarzshuttle_dataset"
