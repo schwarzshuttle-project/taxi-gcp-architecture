@@ -1,145 +1,113 @@
-# Taxi GCP Architecture Deployment
-
-This repository contains a Python script (`deploy.py`) that automates the deployment of a secure Google Cloud Platform (GCP) architecture for the SchwarzShuttle taxi business data platform. The script provisions essential GCP resources to support a scalable and secure data pipeline for processing taxi trip data and enabling communication with taxis, along with architecture diagrams and a vision presentation.
+# SchwarzShuttle: City Taxi Business Deployment on Google Cloud Platform
 
 ## Overview
-- **Purpose**: Automates the setup of GCP resources for a taxi business data platform, including data ingestion, storage, and messaging.
-- **Key Features**:
-  - Creates Pub/Sub topics and subscriptions for real-time data ingestion and responses.
-  - Sets up an encrypted BigQuery dataset using Customer-Managed Encryption Keys (CMEK).
-  - Configures IAM permissions for secure resource access.
-  - Includes logging for deployment status tracking.
-- **Target Use Case**: Supports the SchwarzShuttle taxi business by providing a secure and scalable data infrastructure.
+SchwarzShuttle is a city taxi business application deployed on Google Cloud Platform (GCP), designed to manage trip revenue, optimize fleet operations, prevent fraud, provide executive dashboards, and analyze operational efficiency. The system leverages various GCP services to ingest, process, and analyze real-time trip and telemetry data, ensuring secure and efficient operations.
+
+## Key Features
+- **Trip Revenue Management:** Ingests real-time trip data, processes fares, generates receipts, and provides revenue metrics via BigQuery and Looker dashboards.
+- **Fleet Optimization:** Processes vehicle telemetry data, predicts demand using Vertex AI, and optimizes vehicle placement.
+- **Fraud Prevention:** Analyzes trip data for anomalies using Vertex AI, with automated investigation workflows.
+- **Executive Dashboards & Analytics:** Offers KPI monitoring and forecasting via Looker, covering revenue, trip statistics, vehicle utilization, and fraud detection.
+- **Operational Efficiency:** Tracks vehicle maintenance, fuel consumption, driver behavior, and route optimization effectiveness.
+
+## Architecture
+The deployment uses the following GCP services:
+- **Pub/Sub:** For real-time messaging of trip and telemetry data.
+- **Cloud Functions:** For processing trips, generating receipts, and handling fraud alerts.
+- **Dataflow:** For streaming telemetry and fraud detection data processing.
+- **App Engine:** Hosts the optimizer service for fleet placement recommendations.
+- **Vertex AI:** Trains and runs ML models for demand prediction and anomaly detection.
+- **BigQuery:** Stores and analyzes trip and telemetry data.
+- **Looker:** Provides dashboards for revenue, fleet, and efficiency metrics.
+- **Cloud KMS:** Manages Customer-Managed Encryption Keys (CMEK) for data encryption.
+- **Cloud Logging:** Exports audit logs to BigQuery for monitoring and compliance.
+
+## Security Measures
+- **IAM Policies:** Restrict access to BigQuery and Vertex AI resources, ensuring only authorized service accounts and users have necessary permissions.
+- **Network Firewall Rules:** Limit ingress and egress traffic to trusted IP ranges, reducing exposure of resources.
+- **Service Account Permissions:** Follow the principle of least privilege, granting minimal roles to service accounts.
+- **Data Encryption:** Uses CMEK with Cloud KMS for BigQuery, ensuring control over encryption keys.
+- **Audit Logging:** Exports Cloud Audit Logs to BigQuery for monitoring and compliance.
+  - *Note:* VPC Service Controls setup is skipped as it requires an organization, which is not available for this project. Alternative security measures are implemented to protect resources.
 
 ## Prerequisites
-- **GCP Account**: A GCP project with billing enabled.
-- **Python**: Version 3.7 or higher installed.
-- **Google Cloud SDK**: Downloaded from: https://cloud.google.com/sdk/docs/install, Installed, and authenticated using `gcloud auth login`.
-- **Service Account Key**: A JSON key file for a service account with the "Editor" role (or equivalent permissions to create resources).
-  
-## Setup and Usage
+- **Google Cloud Project:** A GCP project (e.g., "taxipoc-2025") with billing enabled.
+- **Service Account Key:** A JSON key file for a service account with necessary permissions (e.g., roles/bigquery.admin, roles/cloudfunctions.admin, roles/appengine.admin, roles/aiplatform.admin, roles/logging.admin).
+- **Python 3.10:** Ensure Python 3.10 is installed, as the script is compatible with this version.
+- **Dependencies:** Install required Python libraries listed in `requirements.txt`.
 
-### Clone the Repository
+## Setup Instructions
+### Clone the Repository:
 ```bash
-git clone https://github.com/SchwarzShuttle/taxi-gcp-architecture.git
-cd taxi-gcp-architecture
+git clone <repository-url>
+cd schwarzshuttle
 ```
 
-### Install Dependencies
+### Set Up a Virtual Environment:
+#### On Unix/Linux/MacOS:
+```bash
+python -m venv venv
+source venv/bin/activate
+```
+
+#### On Windows:
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+### Install Dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-### Configure the Script
-1. Open `deploy.py` in a text editor.
-2. Update `PROJECT_ID` with your GCP Project ID (default: `taxipoc-2025`).
-3. Ensure the service account key file exists and update `SERVICE_ACCOUNT_KEY_PATH` if different from `taxipoc-2025-83c7b01c8c2e.json`.
-
-### Enable Required APIs
-Enable the following APIs via GCP Console or CLI:
-```bash
-gcloud services enable pubsub.googleapis.com bigquery.googleapis.com cloudkms.googleapis.com cloudresourcemanager.googleapis.com dataflow.googleapis.com --project=taxipoc-2025
+#### `requirements.txt` Includes:
+```text
+google-cloud-pubsub==2.21.1
+google-cloud-bigquery==3.20.1
+google-cloud-iam==2.15.0
+google-cloud-resource-manager==1.12.3
+google-auth==2.29.0
+google-cloud-kms==2.22.0
+google-cloud-functions==1.16.3
+google-cloud-appengine-admin==1.8.4
+google-cloud-aiplatform==1.60.0
+google-cloud-securitycenter==1.28.0
+google-cloud-logging==3.10.0
+google-api-python-client==2.149.0
 ```
 
-### Set Up the Dataflow Service Account
-Create the Dataflow service account if it does not exist:
-```bash
-gcloud iam service-accounts create dataflow --project=<PROJECT_ID>
-```
-Assign required roles:
-```bash
-gcloud projects add-iam-policy-binding <PROJECT_ID> --member="serviceAccount:dataflow@<PROJECT_ID>.iam.gserviceaccount.com" --role="roles/dataflow.worker"
+### Update `deploy.py`:
+Ensure `deploy.py` reflects your project ID, dataset ID, and other configurations. The script will skip VPC Service Controls setup if `ORGANIZATION_ID` is not set.
 
-gcloud projects add-iam-policy-binding <PROJECT_ID> --member="serviceAccount:dataflow@<PROJECT_ID>.iam.gserviceaccount.com" --role="roles/pubsub.subscriber"
-
-gcloud projects add-iam-policy-binding <PROJECT_ID> --member="serviceAccount:dataflow@<PROJECT_ID>.iam.gserviceaccount.com" --role="roles/pubsub.publisher"
-
-gcloud projects add-iam-policy-binding <PROJECT_ID> --member="serviceAccount:dataflow@<PROJECT_ID>.iam.gserviceaccount.com" --role="roles/bigquery.dataEditor"
-```
-
-### Run the Deployment Script
+## Usage
+Run the deployment script to set up the infrastructure:
 ```bash
 python deploy.py
 ```
-The script logs progress in the console (e.g., `INFO - Created topic: taxi-trips`).
 
-### Post-Run KMS Permissions (if needed)
-If BigQuery dataset creation fails due to KMS permissions, grant the **Cloud KMS CryptoKey Encrypter/Decrypter** role:
-```bash
-gcloud kms keys add-iam-policy-binding taxi-key --keyring=taxi-keyring --location=global --project=<PROJECT_ID> --member=serviceAccount:bq-<PROJECT_NUMBER>@bigquery-encryption.iam.gserviceaccount.com --role=roles/cloudkms.cryptoKeyEncrypterDecrypter
-```
+The script will:
+- Create Pub/Sub topics and subscriptions for trip and telemetry data.
+- Set up a BigQuery dataset with CMEK for data storage.
+- Deploy Cloud Functions for trip processing, receipt generation, and fraud alerts.
+- Create an App Engine application for the optimizer service.
+- Initialize Vertex AI for ML model training and inference.
+- Attempt to set up VPC Service Controls (skipped if no organization).
+- Configure security monitoring with log sinks to BigQuery (Security Command Center source creation skipped due to no organization).
 
-## Deployed Resources
-
-### Pub/Sub
-- **Topics:**
-  - `taxi-trips`: Receives taxi trip data.
-  - `taxi-response`: Sends responses to taxis.
-- **Subscriptions:**
-  - `taxi-trips-sub`: Subscribed to `taxi-trips`.
-  - `taxi-response-sub`: Subscribed to `taxi-response`.
-
-### BigQuery
-- **Dataset:** `taxi_dataset`, encrypted with a CMEK.
-
-### Cloud KMS
-- **Keyring:** `taxi-keyring` (global location)
-- **Key:** `taxi-key` (for encrypting BigQuery data)
-
-### IAM Roles
-- **Dataflow Service Account**
-  - `roles/bigquery.dataEditor`
-  - `roles/pubsub.publisher`
-  - `roles/pubsub.subscriber`
-  - `roles/dataflow.worker`
-- **BigQuery Service Account**
-  - `roles/cloudkms.cryptoKeyEncrypterDecrypter`
-
-## Security Features
-| Security Type | Description | Implementation |
-|--------------|-------------|----------------|
-| **Encryption in Transit** | Secures data moving between components with TLS | Used for Pub/Sub, Dataflow, and BigQuery |
-| **Encryption at Rest** | BigQuery data encrypted with CMEK | Uses `projects/<project_id>/locations/global/keyRings/taxi-keyring/cryptoKeys/taxi-key` |
-| **IAM Access Control** | Defines access permissions | Role-based access for Pub/Sub, Dataflow, and BigQuery |
-
-## Project Details
-- **Customer:** SchwarzShuttle
-- **Purpose:** Real-time taxi data processing pipeline on GCP
-- **Deadline:** March 26, 2025
-- **Development Environment:** `taxipoc-2025` GCP project
-- **Scope:** Architecture includes Pub/Sub, Dataflow, BigQuery, IAM, and KMS
-
-## Architecture Diagrams
-- GCP Architecture.drawio
-
-## Files
-- `deploy.py`: Deployment script
-- `requirements.txt`: Python dependencies (Google Cloud SDK libraries)
-- `vision-presentation.pptx`: Future vision for the data platform
+## Limitations
+- **VPC Service Controls:** Requires an organization, which is not available for this project. Alternative security measures (IAM policies, firewall rules, etc.) are used instead.
+- **Security Command Center:** Source creation is skipped as it requires an organization. Project-level monitoring via audit logs in BigQuery is used instead.
+- **IoT Core:** Replaced with ClearBlade due to Google Cloud IoT Core retirement on August 16, 2023. Ensure ClearBlade or another IoT solution is configured separately.
 
 ## Troubleshooting
-### API Not Enabled
-Ensure all required APIs are enabled:
-```bash
-gcloud services list --enabled --project=<PROJECT_ID>
-```
+- **Import Errors:** Ensure all dependencies are installed in the correct virtual environment (`pip install -r requirements.txt`).
+- **Permission Errors:** Verify the service account has necessary roles (`roles/bigquery.admin`, `roles/cloudfunctions.admin`, etc.) in "IAM & Admin" > "IAM".
+- **API Enablement:** Ensure all required APIs are enabled in `REQUIRED_APIS` within the script, such as `bigquery.googleapis.com`, `aiplatform.googleapis.com`, etc.
+- **Logs:** Check logs for detailed error messages, which are logged with `logging` to help diagnose issues.
 
-### Service Account Key Issues
-- Verify the key file path in `deploy.py`
+## Future Improvements
+- **Organization Setup:** Consider creating an organization in GCP to enable VPC Service Controls and Security Command Center source creation for enhanced security.
+- **IoT Integration:** Fully integrate ClearBlade or another IoT solution for device management, replacing the retired IoT Core functionality.
+- **Monitoring Enhancements:** Explore additional monitoring tools like Cloud Monitoring for more comprehensive observability.
 
-### Permission Errors
-- Ensure service accounts have the required IAM roles.
-- For KMS-related errors, re-run the post-run KMS permissions step.
-
-### Dataflow Issues
-- Ensure `dataflow@<PROJECT_ID>.iam.gserviceaccount.com` exists and has required roles.
-
-### Logging
-Check the console output for messages prefixed with `ERROR` or `WARNING`.
-
-## Notes
-- This script is for initial deployment; production setup may require further configurations.
-
----
-
-This project is designed for secure, scalable taxi data processing using GCP services. 🚖
