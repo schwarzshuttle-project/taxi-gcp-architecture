@@ -9,7 +9,7 @@ Uses logging for status updates and a service account JSON key for authenticatio
 import logging
 from googleapiclient import discovery
 from googleapiclient.errors import HttpError
-from google.cloud import pubsub_v1, bigquery, kms_v1, iot_v1, functions_v1, appengine_admin_v1, logging_v2
+from google.cloud import pubsub_v1, bigquery, kms_v1, iot_v1, functions_v1, appengine_admin_v1
 from google.cloud.aiplatform import init as vertexai_init
 from google.cloud.resourcemanager_v3 import ProjectsClient
 from google.cloud.securitycenter_v1 import SecurityCenterClient
@@ -20,6 +20,8 @@ from google.cloud.service_usage_v1.types.resources import Service, State
 from google.cloud.service_usage_v1.types import GetServiceRequest
 from google.iam.v1 import iam_policy_pb2, policy_pb2
 from google.oauth2 import service_account
+import requests
+from google.auth import credentials as google_auth_credentials
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -213,47 +215,36 @@ def create_vpc_service_controls():
 
 
 def setup_security_monitoring():
-    """Configures Security Command Center and Log Sinks to BigQuery."""
-    # Enable Security Command Center
-    if ORGANIZATION_ID:
-        try:
-            securitycenter_client.create_source(
-                request={
-                    "parent": f"organizations/{ORGANIZATION_ID}",
-                    "source": {"display_name": "SchwarzShuttle Security Source"}
-                }
-            )
-            logger.info("Created Security Command Center source")
-        except Exception as e:
-            logger.warning(f"Security Command Center source exists or error: {e}")
-    else:
-        logger.info("Skipping Security Command Center source creation as no organization is set")
-    # Create Log Sink to BigQuery
+    """Configures log sinks to BigQuery for monitoring (skips Security Command Center source creation)."""
     try:
+        bigquery_client = bigquery.Client(project=PROJECT_ID, credentials=credentials)
+        dataset_ref = bigquery_client.dataset(DATASET_ID)
+
+        try:
+            bigquery_client.get_dataset(dataset_ref)
+            logger.info(f"Dataset {DATASET_ID} already exists.")
+        except Exception as e:
+            if "404" in str(e):
+                logger.warning(f"Dataset {DATASET_ID} does not exist. Creating it.")
+                create_bigquery_dataset(key_path)  # Ensure key_path is available
+            else:
+                logger.error(f"Error checking dataset {DATASET_ID}: {e}")
+                return
+
         client = gc_logging.Client(credentials=credentials)
-        sink = client.sink("schwarzshuttle_logs")
+        sink_name = "schwarzshuttle_logs"
+        sink = client.sink(sink_name)
+
         sink.filter_ = f'logName:"projects/{PROJECT_ID}/logs/cloudaudit.googleapis.com%"'
-        sink.destination = f"bigquery.googleapis.com/projects/{PROJECT_ID}/datasets/{DATASET_ID}"
-        sink.create()
-        logger.info("Created Log Sink to BigQuery")
-        # Grant write permissions to the sink's writerIdentity
-        writer_identity = sink.writer_identity
-        resource_service = discovery.build('bigquery', 'v2', credentials=credentials)
-        policy = resource_service.datasets().getIamPolicy(
-            resource=f"projects/{PROJECT_ID}/datasets/{DATASET_ID}"
-        ).execute()
-        policy['bindings'] = policy.get('bindings', [])
-        policy['bindings'].append({
-            "role": "roles/bigquery.dataEditor",
-            "members": [writer_identity]
-        })
-        resource_service.datasets().setIamPolicy(
-            resource=f"projects/{PROJECT_ID}/datasets/{DATASET_ID}",
-            body={"policy": policy}
-        ).execute()
-        logger.info(f"Granted write permissions to {writer_identity} on dataset {DATASET_ID}")
+        sink.destination = f"bigquery.googleapis.com/projects/{PROJECT_ID}/datasets/{DATASET_ID}/tables/audit_logs"
+
+        if sink.exists():
+            logger.info(f"Log Sink '{sink_name}' already exists. Skipping creation.")
+        else:
+            sink.create()
+            logger.info(f"Created Log Sink '{sink_name}' to BigQuery.")
     except Exception as e:
-        logger.warning(f"Log Sink exists or error: {e}")
+        logger.warning(f"Failed to set up security monitoring: {e}")
 
 
 def set_iam_policy():
