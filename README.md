@@ -5,7 +5,7 @@ SchwarzShuttle is a city taxi business application deployed on Google Cloud Plat
 
 ### We have two approaches for creating the infrastructure
 ## 1. Terraform Code : 
-   Check out the [Terraform Repository From here :](https://github.com/SchwarzShuttle/Infrastructure-Terraform).
+   Check out the [Terraform Repository](https://github.com/SchwarzShuttle/Infrastructure-Terraform).
    Thats the most suitable approache for our case here because the unnlimited features of terraform such as:
       1- Infrastructure as Code (IaC) capabilities for consistent and repeatable deployments.
       2- State management for tracking Infrastructure changes
@@ -119,18 +119,26 @@ python new-deployment.py
  gcloud kms keys add-iam-policy-binding schwarzshuttle-key --keyring=schwarzshuttle-keyring --location=global --project=<PROJECT_ID> --member=serviceAccount:bq-<PROJECT_NUMBER>@bigquery-encryption.iam.gserviceaccount.com --role=roles/cloudkms.cryptoKeyEncrypterDecrypter
 ```
 
-The script will:
+### The script will automate the creation for about 70% of the GCP resources and the rest of the resources either need to be determined after the creating of some other services such as the ML & Data and Analytics Parts or the IoT Part. 
+
+#### The list of the resourced that will be created by this Script:   
+
 - Create Pub/Sub topics and subscriptions for trip and telemetry data.
 ![Topics](./assets/Topics.png)
-![Subscriptions](./assets/PpubSub-Subscriptions.png)
+![Subscriptions](./assets/PubSub-Subscriptions.png)
+
 - Set up a BigQuery dataset with CMEK for data storage.
-- Deploy Cloud Runs for trip processing, receipt generation, Payment processing,    
-Driver Performance, telemtry processing.
+
+- Deploy Cloud Runs for trip processing, receipt generation, Payment processing, Driver Performance, telemtry processing.
 ![Cloud Run](./assets/CloudRuns.png)
+
 - Initialize Vertex AI for ML model training and inference.
+
 - Create 5 Service Accounts and attach them to the their cloud runs services and granting them appropriate access.
+
 - Create the cloud storage buckets for storing the historical logs and necessary trip data or or the Receipts reports.
 ![Buckets](./assets/buckets.png)
+
 - Create Keyring and required KMS keys for encrypting the data either in rest or in transit.
 ![keys](./assets/keys.png)
 
