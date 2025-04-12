@@ -98,11 +98,11 @@ def enable_required_apis():
 
 # Create Service Accounts 
 service_names = [
-        # "trip-processing",
+        "trip-processing"
         # "driver-performance",
         # "payment-processing"
         # "telemetry-processing",
-        "receipt-generator"
+        # "receipt-generator"
     ]
 def create_service_accounts() -> None:
     """Creates multiple service accounts for predefined services with rate limiting."""
@@ -316,22 +316,24 @@ def assign_role_storage_writer():
                 print(f"Error: {e.stderr}")
 
 if __name__ == "__main__":
-    # assign_role_storage_writer()
-    # logger.info("storage writer assigned to the SAs")
-    # enable_required_apis()
-    # setup_vertex_ai()
-    # create_gcs_buckets()
-    # logger.info("GCS bucket creation process completed")
-    # create_service_accounts()
-    # create_cloud_run_services()
-    # create_bigquery_dataset(key_path_dataset)
-    # logger.info("Datasets Created")
-    # create_kms_key()
-    # logger.info("Keys Creation Completed")
-    # create_services_with_service_accounts()
-    # logger.info("Cloud Runs & SAs Deployment Completed")
-    # create_pubsub_resources()
-    # logger.info("PubSubs & Subscriptions Deployment Completed")
+    assign_role_storage_writer()
+    logger.info("storage writer assigned to the SAs")
+    enable_required_apis()
+    logger.info("Google Cloud APIs is Enabled")
+    setup_vertex_ai()
+    logger.info("Vertex AI Setup is Created")
+    create_gcs_buckets()
+    logger.info("GCS bucket creation process completed")
+    create_service_accounts()
+    logger.info("Service Accounts are created")
+    create_cloud_run_services()
+    logger.info("Cloud Runs Services Are Created and associated with the appropriate Service Accounts")
+    create_bigquery_dataset(key_path_dataset)
+    logger.info("Datasets Created")
+    create_kms_key()
+    logger.info("Keys Creation Completed")
+    create_pubsub_resources()
+    logger.info("PubSubs Topics & Subscriptions Deployment Completed")
 
 
 
