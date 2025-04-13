@@ -115,7 +115,7 @@ python deployment.py
 ```
 
 ### Post-Run Checks KMS Permissions (if needed)
- If BigQuery dataset creation fails due to KMS permissions, grant the **Cloud KMS CryptoKey Encrypter/Decrypter** role. You can find your project number in the logs!:
+ If BigQuery dataset creation fails due to KMS permissions, grant the **Cloud KMS CryptoKey Encrypter/Decrypter** role. You can find the project number in the logs!:
  ```bash
  gcloud kms keys add-iam-policy-binding schwarzshuttle-key --keyring=schwarzshuttle-keyring --location=global --project=<PROJECT_ID> --member=serviceAccount:bq-<PROJECT_NUMBER>@bigquery-encryption.iam.gserviceaccount.com --role=roles/cloudkms.cryptoKeyEncrypterDecrypter
 ```
@@ -133,9 +133,9 @@ python deployment.py
 
 - Initialize Vertex AI for ML model training and inference.
 
-- Create 5 Service Accounts and attach them to the their cloud runs services and granting them appropriate access.
+- Create 5 Service Accounts, attach them to their respective Cloud Run services, and grant them appropriate access.
 
-- Create the cloud storage buckets for storing the historical logs and necessary trip data or or the Receipts reports.
+- Create Cloud Storage buckets to store historical logs, trip data, and receipts reports.
 ![Buckets](./assets/buckets.png)
 
 - Create Keyring and required KMS keys for encrypting the data either in rest or in transit.
