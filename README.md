@@ -8,12 +8,12 @@ SchwarzShuttle is a city taxi business application deployed on Google Cloud Plat
 ### 1. Terraform Deployment (Recommended) : 
    For a more comprehensive and production-ready approach, I recommend leveraging the [Terraform Repository](https://github.com/SchwarzShuttle/Infrastructure-Terraform).
    The Terraform configuration provides:
-      - Complete infrastructure defined in `vars.yaml` including Core Infrastructure, Data Services, Security, and Compute Services 
-      - Network configuration with VPC, private/public subnets, and NAT Gateway 
-      - All Pub/Sub topics for trip lifecycle, payments, telemetry, analytics, and operations 
-      - Cloud Run services for trip processing, payment processing, driver performance, telemetry, and receipt generation 
-      - Clear deployment workflow with preview capabilities (`terraform plan`) 
-      - Easier infrastructure maintenance through simple configuration updates
+   - Complete infrastructure defined in `vars.yaml` including Core Infrastructure, Data Services, Security, and Compute Services 
+   - Network configuration with VPC, private/public subnets, and NAT Gateway 
+   - All Pub/Sub topics for trip lifecycle, payments, telemetry, analytics, and operations 
+   - Cloud Run services for trip processing, payment processing, driver performance, telemetry, and receipt generation 
+   - Clear deployment workflow with preview capabilities (`terraform plan`) 
+   - Easier infrastructure maintenance through simple configuration updates
 
 ## 2- Python Deployment (This Repository)
    This repository contains a Python script for deploying the SchwarzShuttle infrastructure, which:
