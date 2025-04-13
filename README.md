@@ -3,23 +3,24 @@
 ## Overview
 SchwarzShuttle is a city taxi business application deployed on Google Cloud Platform (GCP), designed to manage trip revenue, optimize fleet operations, prevent fraud, provide executive dashboards, and analyze operational efficiency. The system leverages various GCP services to ingest, process, and analyze real-time trip and telemetry data, ensuring secure and efficient operations.
 
-### We have two approaches for creating the infrastructure
-## 1. Terraform Code : 
-   Check out the [Terraform Repository](https://github.com/SchwarzShuttle/Infrastructure-Terraform).
-   Thats the most suitable approache for our case here because the unnlimited features of terraform such as:
-      1- Infrastructure as Code (IaC) capabilities for consistent and repeatable deployments.
-      2- State management for tracking Infrastructure changes
-      3- Modular design for reusable components
-      4- Extensive provider ecosystem with thousands of integrations
-      5- Plan/preview functionality before applying changes
-      6- Version control compatibility for collaboration and history tracking
+## Deployment Options
 
-## 2- Python Code Deployment 
-   
-   #### Thats what we will show in this Repository:
+### 1. Terraform Deployment (Recommended) : 
+   For a more comprehensive and production-ready approach, I recommend leveraging the [Terraform Repository](https://github.com/SchwarzShuttle/Infrastructure-Terraform).
+   The Terraform configuration provides:
+      - Complete infrastructure defined in `vars.yaml` including Core Infrastructure, Data Services, Security, and Compute Services 
+      - Network configuration with VPC, private/public subnets, and NAT Gateway 
+      - All Pub/Sub topics for trip lifecycle, payments, telemetry, analytics, and operations 
+      - Cloud Run services for trip processing, payment processing, driver performance, telemetry, and receipt generation 
+      - Clear deployment workflow with preview capabilities (`terraform plan`) 
+      - Easier infrastructure maintenance through simple configuration updates
 
-## Installation
-Steps to install...
+## 2- Python Deployment (This Repository)
+   This repository contains a Python script for deploying the SchwarzShuttle infrastructure, which:
+      - Automate approximately 70% of the GCP resources required for SchwarzShuttle  
+      - Set up core components including Pub/Sub infrastructure, Cloud Run services, BigQuery datasets with CMEK, KMS keys, service accounts, and storage buckets 
+      - Provide a straightforward approach for development and testing environments 
+      - Require additional manual configuration for ML, Data Analytics, and IoT components after initial deployment
 
 ## Key Features
 - **Trip Revenue Management:** Ingests real-time trip data, processes fares, generates receipts, and provides revenue metrics via BigQuery and Looker dashboards.
@@ -98,8 +99,8 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Update `new-deployment.py`:
-Open new-deployment.py and Set the following variables:
+### Update `deployment.py`:
+Open deployment.py and Set the following variables:
 ```bash
 PROJECT_ID = "<schwarzshuttle>"  # Update to your project ID
 LOCATION = "global" # Update to your location
@@ -110,7 +111,7 @@ ORGANIZATION_ID = ""  # Set to empty string if no organization; VPC Service Cont
 ## Usage
 Run the deployment script to set up the infrastructure:
 ```bash
-python new-deployment.py
+python deployment.py
 ```
 
 ### Post-Run Checks KMS Permissions (if needed)
@@ -118,8 +119,6 @@ python new-deployment.py
  ```bash
  gcloud kms keys add-iam-policy-binding schwarzshuttle-key --keyring=schwarzshuttle-keyring --location=global --project=<PROJECT_ID> --member=serviceAccount:bq-<PROJECT_NUMBER>@bigquery-encryption.iam.gserviceaccount.com --role=roles/cloudkms.cryptoKeyEncrypterDecrypter
 ```
-
-### The script will automate the creation for about 70% of the GCP resources and the rest of the resources either need to be determined after the creating of some other services such as the ML & Data and Analytics Parts or the IoT Part. 
 
 #### The list of the resourced that will be created by this Script:   
 
