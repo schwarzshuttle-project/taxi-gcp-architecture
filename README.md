@@ -15,7 +15,7 @@ SchwarzShuttle is a city taxi business application deployed on Google Cloud Plat
    - Clear deployment workflow with preview capabilities (`terraform plan`) 
    - Easier infrastructure maintenance through simple configuration updates
 
-## 2- Python Deployment (This Repository)
+### 2. Python Deployment (This Repository) :
    This repository contains a Python script for deploying the SchwarzShuttle infrastructure, which:
    - Automate approximately 70% of the GCP resources required for SchwarzShuttle  
    - Set up core components including Pub/Sub infrastructure, Cloud Run services, BigQuery datasets with CMEK, KMS keys, service accounts, and storage buckets 
